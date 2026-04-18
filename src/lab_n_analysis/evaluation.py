@@ -12,7 +12,6 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
-from .constants import FEATURE_SETS, TARGET_COL
 from .excel_utils import save_excel_wait
 from .models import build_models, make_pipeline
 from .prediction_plots import plot_predicted_vs_actual
@@ -20,20 +19,25 @@ from .prediction_plots import plot_predicted_vs_actual
 
 def train_models(
     df: pd.DataFrame,
+    *,
+    target_col: str,
+    feature_sets: dict[str, list[str]],
     random_state: int = 42,
     test_size: float = 0.2,
-    plots_dir: str | Path = "plots",
+    predictions_plots_dir: str | Path,
+    target_display_name: str,
+    rf_importance_feature_set: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Обучение всех моделей по наборам признаков; важности — только RF на combined."""
+    """Обучение всех моделей по наборам признаков; важности RF — для указанного набора признаков."""
     results: list[dict[str, object]] = []
 
     models = build_models(random_state=random_state)
     rf_importance_df: pd.DataFrame | None = None
     cv = KFold(n_splits=5, shuffle=True, random_state=random_state)
 
-    for feature_set_name, features in FEATURE_SETS.items():
+    for feature_set_name, features in feature_sets.items():
         X = df[features]
-        y = df[TARGET_COL]
+        y = df[target_col]
 
         X_train, X_test, y_train, y_test = train_test_split(
             X,
@@ -52,7 +56,8 @@ def train_models(
                 y_pred=np.asarray(preds),
                 model_name=model_name,
                 feature_set_name=feature_set_name,
-                out_dir=Path(plots_dir) / "predictions",
+                out_dir=Path(predictions_plots_dir),
+                target_display_name=target_display_name,
             )
 
             r2 = float(r2_score(y_test, preds))
@@ -77,7 +82,7 @@ def train_models(
 
             if (
                 model_name == "RandomForestRegressor"
-                and feature_set_name == "combined"
+                and feature_set_name == rf_importance_feature_set
                 and rf_importance_df is None
             ):
                 rf_model = pipe.named_steps["model"]
@@ -99,10 +104,9 @@ def train_models(
 def save_results(
     results_df: pd.DataFrame,
     rf_importance_df: pd.DataFrame,
-    out_results_path: str | Path = "results/model_results_labN.xlsx",
-    out_importance_path: str | Path = "results/feature_importance.xlsx",
+    out_results_path: str | Path,
+    out_importance_path: str | Path,
 ) -> tuple[Path, Path]:
     results_path = save_excel_wait(results_df, out_results_path)
     importance_path = save_excel_wait(rf_importance_df, out_importance_path)
     return results_path, importance_path
-

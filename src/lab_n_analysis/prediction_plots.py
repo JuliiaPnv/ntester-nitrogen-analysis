@@ -17,6 +17,8 @@ def plot_predicted_vs_actual(
     model_name: str,
     feature_set_name: str,
     out_dir: str | Path,
+    *,
+    target_display_name: str = "lab_N",
 ) -> Path:
     out_path_dir = Path(out_dir) / _safe_name(model_name)
     out_path_dir.mkdir(parents=True, exist_ok=True)
@@ -36,8 +38,8 @@ def plot_predicted_vs_actual(
         vmax = float(np.max([y_true_f.max(), y_pred_f.max()]))
         plt.plot([vmin, vmax], [vmin, vmax])
 
-    plt.xlabel("Actual lab_N")
-    plt.ylabel("Predicted lab_N")
+    plt.xlabel(f"Actual {target_display_name}")
+    plt.ylabel(f"Predicted {target_display_name}")
     plt.title(f"Predicted vs Actual: {model_name} ({feature_set_name})")
     plt.tight_layout()
 

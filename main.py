@@ -10,8 +10,9 @@ from src.lab_n_analysis.pipeline import run_all
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Анализ связи N-тестера/мультиспектральных индексов с лабораторным азотом (lab_N) "
-            "и сравнение регрессионных моделей."
+            "Два сценария: (1) связь признаков с lab_N и регрессионные модели для lab_N; "
+            "(2) корреляции NDVI/GNDVI/NDRE/RECI с N-test и модели предсказания N-test по этим индексам. "
+            "Результаты в results/labN и results/Ntest; графики — scatter_labN / scatter_Ntest и predictions_*."
         )
     )
     parser.add_argument(
@@ -34,7 +35,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def main(argv: list[str]) -> int:
-    # Скрываем ConvergenceWarning у MLP только для читаемого вывода; на выводы по качеству опирайтесь на CV.
+    # Скрываем ConvergenceWarning у MLP только для читаемого вывода; на выводы по качеству опираемся на CV.
     try:
         from sklearn.exceptions import ConvergenceWarning
 

@@ -46,16 +46,6 @@ def build_models(random_state: int = 42) -> dict[str, RegressorMixin]:
             early_stopping=True,
             n_iter_no_change=50,
         ),
-        "MLPRegressor_large": MLPRegressor(
-            solver="adam",
-            hidden_layer_sizes=(64, 32),
-            max_iter=20000,
-            learning_rate_init=1e-3,
-            alpha=1e-3,
-            random_state=random_state,
-            early_stopping=True,
-            n_iter_no_change=50,
-        ),
     }
 
 
