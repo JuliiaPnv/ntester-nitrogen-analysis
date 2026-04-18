@@ -4,7 +4,7 @@ import argparse
 import sys
 import warnings
 
-from src.lab_n_analysis.pipeline import run_all
+from src.nitrogen_analysis.pipeline import run_all
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
