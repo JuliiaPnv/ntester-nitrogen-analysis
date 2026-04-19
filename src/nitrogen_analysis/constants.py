@@ -24,6 +24,10 @@ FEATURE_SETS: dict[str, list[str]] = {
     "N_test_only": ["N-test"],
     "multispectral_only": ["NDVI", "GNDVI", "NDRE", "RECI"],
     "combined": ["N-test", "NDVI", "GNDVI", "NDRE", "RECI", "T"],
+    "NDVI_only": ["NDVI"],
+    "GNDVI_only": ["GNDVI"],
+    "NDRE_only": ["NDRE"],
+    "RECI_only": ["RECI"],
 }
 
 # N-test как target: по одному индексу и все четыре вместе
