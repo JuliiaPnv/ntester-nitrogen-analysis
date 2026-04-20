@@ -10,7 +10,7 @@ class PhaseDataError(ValueError):
 
 
 def validate_columns(df: pd.DataFrame) -> None:
-    """Проверяет наличие столбцов из ТЗ; таблица остаётся wide, одна строка — одна точка."""
+    """Проверяет наличие нужных столбцов; таблица остаётся wide, одна строка — одна точка."""
     expected = all_expected_columns()
     missing = [c for c in expected if c not in df.columns]
     if missing:
@@ -25,4 +25,3 @@ def print_dataset_overview(title: str, df: pd.DataFrame) -> None:
     print(title)
     print(f"{'=' * 60}")
     print(f"Строк (точек): {len(df)}, столбцов: {len(df.columns)}")
-    print("(wide-формат: без разворота по фазам)")

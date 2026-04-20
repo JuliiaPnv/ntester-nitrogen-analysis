@@ -23,7 +23,7 @@ def n_test_col(phase: int) -> str:
     return f"N_test_{phase}"
 
 
-# --- Все ожидаемые столбцы из ТЗ (wide) ---
+# --- Все ожидаемые столбцы ---
 def all_expected_columns() -> list[str]:
     cols = [TARGET_N1, TARGET_N2, TARGET_YIELD]
     for p in range(1, 5):
