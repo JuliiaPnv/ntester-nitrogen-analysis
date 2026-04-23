@@ -5,10 +5,13 @@ from pathlib import Path
 import pandas as pd
 
 from .analysis import correlation_analysis, plot_scatter_features_vs_target
+from .classification import print_classification_best_models, train_classification_models
 from .constants import (
     N1_CORRELATION_SPECS,
     N1_FEATURE_SETS,
     N2_CORRELATION_SPECS,
+    N1_CLASS_FEATURE_SETS,
+    N2_CLASS_FEATURE_SETS,
     N2_FEATURE_SETS,
     PREDICTIONS_SUBDIR_N1,
     PREDICTIONS_SUBDIR_N2,
@@ -26,6 +29,7 @@ from .constants import (
     pearson_column_name,
 )
 from .evaluation import save_model_results, train_models
+from .yield_regression_tune import print_yield_tuning_comparison, train_yield_regression_baseline_and_tuned
 from .io_utils import load_yield_table
 from .preprocessing import print_dataset_overview, validate_columns
 
@@ -260,7 +264,8 @@ def run_all(
             pearson_col_name=pear_y,
             out_path=out_p,
         )
-        if spec["file"] == "correlations_yield_all_phases.xlsx":
+        # В консоль — полный обзор: N_test_1 + все индексы (как в combined-моделях)
+        if spec["file"] == "correlations_yield_combined.xlsx":
             corr_yield_primary = cdf
 
     plot_scatter_features_vs_target(
@@ -271,7 +276,7 @@ def run_all(
         scatter_subdir=SCATTER_SUBDIR_YIELD,
     )
 
-    results_y = train_models(
+    results_y = train_yield_regression_baseline_and_tuned(
         df,
         target_col=TARGET_YIELD,
         feature_sets=YIELD_FEATURE_SETS,
@@ -280,6 +285,7 @@ def run_all(
         target_display_name=TARGET_YIELD,
     )
     save_model_results(results_y, y_dir / "model_results_yield.xlsx")
+    print_yield_tuning_comparison(results_y)
 
     if corr_yield_primary is None:
         corr_yield_primary = pd.DataFrame()
@@ -289,9 +295,51 @@ def run_all(
         corr_primary=corr_yield_primary,
         pearson_col=pear_y,
         results_df=results_y,
-        corr_context="все спектральные индексы по фазам (all_phases) — обзор корреляций с yield",
+        corr_context="N_test_1 и все спектральные индексы по фазам (combined) — обзор корреляций с yield",
     )
     _print_yield_phase_comparison(results_y)
+
+    # --- Классификация N_1_class (порог — медиана N_1) ---
+    n1_class_dir = results_root / "N1_class"
+    results_n1_class = train_classification_models(
+        df,
+        feature_sets=N1_CLASS_FEATURE_SETS,
+        target_col=TARGET_N1,
+        random_state=random_state,
+    )
+    save_model_results(results_n1_class, n1_class_dir / "model_results_N1_class.xlsx")
+    print_classification_best_models(
+        results_n1_class,
+        "Классификация N_1_class (низкий/высокий азот по медиане N_1)",
+    )
+
+    # --- Классификация N_2_class (порог — медиана N_2) ---
+    n2_class_dir = results_root / "N2_class"
+    results_n2_class = train_classification_models(
+        df,
+        feature_sets=N2_CLASS_FEATURE_SETS,
+        target_col=TARGET_N2,
+        random_state=random_state,
+    )
+    save_model_results(results_n2_class, n2_class_dir / "model_results_N2_class.xlsx")
+    print_classification_best_models(
+        results_n2_class,
+        "Классификация N_2_class (низкий/высокий азот по медиане N_2)",
+    )
+
+    # --- Классификация yield_class (те же наборы признаков, что и в регрессии yield) ---
+    yield_class_dir = results_root / "yield_class"
+    results_yield_class = train_classification_models(
+        df,
+        feature_sets=YIELD_FEATURE_SETS,
+        target_col=TARGET_YIELD,
+        random_state=random_state,
+    )
+    save_model_results(results_yield_class, yield_class_dir / "model_results_yield_class.xlsx")
+    print_classification_best_models(
+        results_yield_class,
+        "Классификация yield_class (низкая/высокая урожайность по медиане yield)",
+    )
 
     # --- Сохранённые файлы ---
     print(f"\n{'=' * 60}")
@@ -300,5 +348,8 @@ def run_all(
     print(f"\n{results_root.resolve()}/N1/ — корреляции, model_results_N1.xlsx")
     print(f"{results_root.resolve()}/N2/ — корреляции, model_results_N2.xlsx")
     print(f"{results_root.resolve()}/yield/ — корреляции, model_results_yield.xlsx")
+    print(f"{results_root.resolve()}/N1_class/ — model_results_N1_class.xlsx")
+    print(f"{results_root.resolve()}/N2_class/ — model_results_N2_class.xlsx")
+    print(f"{results_root.resolve()}/yield_class/ — model_results_yield_class.xlsx")
     print(f"\nГрафики: {phase_plots.resolve()}/ — {SCATTER_SUBDIR_N1}, {SCATTER_SUBDIR_N2}, {SCATTER_SUBDIR_YIELD}, "
           f"{PREDICTIONS_SUBDIR_N1}, {PREDICTIONS_SUBDIR_N2}, {PREDICTIONS_SUBDIR_YIELD}")

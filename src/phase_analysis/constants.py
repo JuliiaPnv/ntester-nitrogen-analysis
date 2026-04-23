@@ -134,3 +134,21 @@ YIELD_PHASE_FEATURE_SET_KEYS: tuple[str, ...] = (
     "phase3_indices",
     "phase4_indices",
 )
+
+# --- Классификация азота: те же сценарии, что в регрессии по фазе + indexes_only ---
+def _nitrogen_class_feature_sets(phase: int) -> dict[str, list[str]]:
+    nt = n_test_col(phase)
+    ndvi, gndvi, ndre, ci = phase_index_features(phase)
+    return {
+        "N_test_only": [nt],
+        "NDVI_only": [ndvi],
+        "GNDVI_only": [gndvi],
+        "NDRE_only": [ndre],
+        "CI_only": [ci],
+        "indexes_only": [ndvi, gndvi, ndre, ci],
+        "combined": [nt, ndvi, gndvi, ndre, ci],
+    }
+
+
+N1_CLASS_FEATURE_SETS: dict[str, list[str]] = _nitrogen_class_feature_sets(1)
+N2_CLASS_FEATURE_SETS: dict[str, list[str]] = _nitrogen_class_feature_sets(2)
