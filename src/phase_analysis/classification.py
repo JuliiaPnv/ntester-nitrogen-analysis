@@ -52,8 +52,8 @@ def train_classification_models(
     test_size: float = 0.2,
 ) -> pd.DataFrame:
     """
-    Бинарная классификация: порог — медиана непрерывной цели ``target_col``,
-    класс ``(y > threshold).astype(int)``. Результаты по наборам признаков и моделям.
+    Бинарная классификация: порог — медиана непрерывной цели ``target_col``;
+    класс 0 — значения строго ниже медианы, класс 1 — выше или равные медиане.
     """
     y_cont = df[target_col]
     valid = y_cont.notna()
@@ -62,7 +62,8 @@ def train_classification_models(
 
     threshold = float(y_cont[valid].median())
     y_class_full = pd.Series(np.nan, index=df.index, dtype=float)
-    y_class_full.loc[valid] = (y_cont[valid] > threshold).astype(int)
+    # Класс 1: значения выше или равные медиане; класс 0: строго ниже медианы.
+    y_class_full.loc[valid] = (y_cont[valid] >= threshold).astype(int)
 
     results: list[dict[str, object]] = []
     models = _build_classifiers(random_state=random_state)

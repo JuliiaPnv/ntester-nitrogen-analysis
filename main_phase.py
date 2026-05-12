@@ -5,16 +5,16 @@ import sys
 import warnings
 
 from src.phase_analysis.constants import DEFAULT_INPUT, PLOTS_PHASE_ROOT, RESULTS_PHASE_ROOT
-from src.phase_analysis.pipeline import run_all
+from src.phase_analysis.pipeline import run_analysis
+from src.phase_analysis.preprocessing import PhaseDataError
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Анализ по фазам: азот в растениях (N_1, N_2) и урожайность (yield) по wide-таблице yield_analys.xlsx. "
-            "Результаты: "
-            f"{RESULTS_PHASE_ROOT}/N1, {RESULTS_PHASE_ROOT}/N2, {RESULTS_PHASE_ROOT}/yield; "
-            f"графики: {PLOTS_PHASE_ROOT}/…"
+            "Универсальный анализ эффективности признаков прибора и вегетационных индексов "
+            "для прогнозирования целевой переменной (макроэлемент по фазе, например N_1, или yield). "
+            "Результаты: --results-dir/<target>/; графики: --plots-dir/."
         )
     )
     parser.add_argument(
@@ -23,9 +23,39 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help=f"Путь к Excel (по умолчанию: {DEFAULT_INPUT})",
     )
     parser.add_argument(
+        "--target",
+        required=True,
+        help="Целевая переменная: макроэлемент с фазой (N_1, P_2, …) или урожайность: yield",
+    )
+    parser.add_argument(
+        "--device-features",
+        nargs="+",
+        required=True,
+        metavar="COL",
+        help="Один или несколько столбцов показаний прибора (например N_test_1 или N_test_1 … N_test_4)",
+    )
+    parser.add_argument(
+        "--index-features",
+        nargs="*",
+        default=[],
+        metavar="COL",
+        help="Список вегетационных индексов (столбцы Excel). Можно оставить пустым: --index-features",
+    )
+    parser.add_argument(
+        "--task",
+        choices=["regression", "classification", "both"],
+        default="both",
+        help="Режим: регрессия, только классификация или оба (по умолчанию: both)",
+    )
+    parser.add_argument(
         "--plots-dir",
         default=PLOTS_PHASE_ROOT,
-        help=f"Корневая папка для графиков phase (по умолчанию: {PLOTS_PHASE_ROOT})",
+        help=f"Корневая папка для графиков (по умолчанию: {PLOTS_PHASE_ROOT})",
+    )
+    parser.add_argument(
+        "--results-dir",
+        default=RESULTS_PHASE_ROOT,
+        help=f"Корневая папка для Excel-результатов (по умолчанию: {RESULTS_PHASE_ROOT})",
     )
     parser.add_argument(
         "--random-state",
@@ -45,11 +75,23 @@ def main(argv: list[str]) -> int:
         pass
 
     args = parse_args(argv)
-    run_all(
-        input_path=args.input,
-        plots_dir=args.plots_dir,
-        random_state=args.random_state,
-    )
+    try:
+        run_analysis(
+            input_path=args.input,
+            target=args.target,
+            device_features=args.device_features,
+            index_features=args.index_features,
+            task=args.task,
+            plots_dir=args.plots_dir,
+            results_dir=args.results_dir,
+            random_state=args.random_state,
+        )
+    except PhaseDataError as e:
+        print(f"\nОшибка данных: {e}", file=sys.stderr)
+        return 2
+    except ValueError as e:
+        print(f"\nОшибка параметров: {e}", file=sys.stderr)
+        return 2
     return 0
 
 
