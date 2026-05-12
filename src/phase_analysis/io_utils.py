@@ -10,7 +10,7 @@ class DataFileNotFoundError(FileNotFoundError):
 
 
 def load_yield_table(path: str | Path) -> pd.DataFrame:
-    """Читает yield_analys.xlsx как есть (wide), подчищает имена столбцов."""
+    """Читает .xlsx в таблицу, обрезает пробелы в названиях столбцов."""
     p = Path(path)
     if not p.exists():
         raise DataFileNotFoundError(f"Файл не найден: {p.resolve()}")

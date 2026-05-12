@@ -52,8 +52,7 @@ def train_classification_models(
     test_size: float = 0.2,
 ) -> pd.DataFrame:
     """
-    Бинарная классификация: порог — медиана непрерывной цели ``target_col``;
-    класс 0 — значения строго ниже медианы, класс 1 — выше или равные медиане.
+    Две метки по медиане цели: 0 — строго ниже медианы, 1 — медиана и выше.
     """
     y_cont = df[target_col]
     valid = y_cont.notna()
@@ -62,7 +61,6 @@ def train_classification_models(
 
     threshold = float(y_cont[valid].median())
     y_class_full = pd.Series(np.nan, index=df.index, dtype=float)
-    # Класс 1: значения выше или равные медиане; класс 0: строго ниже медианы.
     y_class_full.loc[valid] = (y_cont[valid] >= threshold).astype(int)
 
     results: list[dict[str, object]] = []
@@ -106,7 +104,7 @@ def train_classification_models(
 
 
 def print_classification_best_models(results_df: pd.DataFrame, scenario_label: str) -> None:
-    """Консоль: лучшая модель по accuracy и по F1."""
+    """Вывод сводки: лучшие модели по accuracy и по F1."""
     print(f"\n{'=' * 60}")
     print(scenario_label)
     print(f"{'=' * 60}")

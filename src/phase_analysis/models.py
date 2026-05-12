@@ -13,6 +13,7 @@ from sklearn.svm import SVR
 
 
 def needs_scaling(model_name: str) -> bool:
+    """Нужна ли стандартизация признаков перед этой моделью."""
     if model_name.startswith("MLPRegressor"):
         return True
     return model_name in {
@@ -26,6 +27,7 @@ def needs_scaling(model_name: str) -> bool:
 
 
 def build_models(random_state: int = 42) -> dict[str, RegressorMixin]:
+    """Набор регрессоров для сравнения на одних и тех же данных."""
     return {
         "DummyRegressor_mean": DummyRegressor(strategy="mean"),
         "LinearRegression": LinearRegression(),
@@ -50,6 +52,7 @@ def build_models(random_state: int = 42) -> dict[str, RegressorMixin]:
 
 
 def make_pipeline(model_name: str, model: RegressorMixin) -> Pipeline:
+    """Цепочка: заполнение пропусков медианой, при необходимости масштабирование, модель."""
     steps: list[tuple[str, object]] = [("imputer", SimpleImputer(strategy="median"))]
     if needs_scaling(model_name):
         steps.append(("scaler", StandardScaler()))

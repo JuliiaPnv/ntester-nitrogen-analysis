@@ -16,7 +16,7 @@ def _missing_columns(df: pd.DataFrame, cols: list[str]) -> list[str]:
 
 
 def validate_input_path(path: str | Path) -> Path:
-    """Проверяет существование входного файла."""
+    """Проверка, что файл по пути существует."""
     p = Path(path)
     if not p.exists():
         raise PhaseDataError(f"Файл не найден: {p.resolve()}")
@@ -30,12 +30,7 @@ def prepare_analysis_frame(
     device_features: list[str],
     index_features: list[str],
 ) -> pd.DataFrame:
-    """
-    Универсальная подготовка данных:
-    - проверка наличия столбцов;
-    - приведение target и выбранных признаков к числу;
-    - удаление строк с пропусками по этим столбцам.
-    """
+    """Оставляет нужные столбцы, приводит к числу, удаляет строки с пропусками."""
     use_cols = [target_col, *device_features, *index_features]
     missing = _missing_columns(df, use_cols)
     if missing:

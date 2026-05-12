@@ -16,6 +16,7 @@ def correlation_analysis(
     pearson_col_name: str,
     out_path: str | Path,
 ) -> pd.DataFrame:
+    """Корреляция Пирсона каждого признака с целью, сортировка по |r|, сохранение в Excel."""
     rows: list[dict[str, float | str]] = []
     for col in feature_cols:
         rows.append(
@@ -39,6 +40,7 @@ def plot_scatter_features_vs_target(
     plots_dir: str | Path,
     scatter_subdir: str,
 ) -> None:
+    """Для каждого признака — scatter с целью, PNG в plots_dir/scatter_subdir."""
     out_dir = Path(plots_dir) / scatter_subdir
     out_dir.mkdir(parents=True, exist_ok=True)
 

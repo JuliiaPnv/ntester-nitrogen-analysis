@@ -26,7 +26,7 @@ def train_models(
     predictions_plots_dir: str | Path,
     target_display_name: str,
 ) -> pd.DataFrame:
-    """Обучение моделей по наборам признаков; основная метрика — R² CV (R2_cv_mean)."""
+    """Обучение регрессоров по каждому набору признаков; сортировка по R2_cv_mean."""
     results: list[dict[str, object]] = []
 
     models = build_models(random_state=random_state)
@@ -87,6 +87,7 @@ def train_models(
 
 
 def save_model_results(results_df: pd.DataFrame, out_path: str | Path) -> Path:
+    """Сохраняет таблицу метрик моделей в Excel."""
     from .excel_utils import save_excel_wait
 
     return save_excel_wait(results_df, out_path)

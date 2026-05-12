@@ -10,7 +10,7 @@ import numpy as np
 
 
 def _safe_name(name: str) -> str:
-    """Имя папки/файла без символов, запрещённых в Windows."""
+    """Имя без символов, неудобных для путей в Windows."""
     return "".join(ch if ch.isalnum() or ch in ("-", "_", ".") else "_" for ch in name).strip("._")
 
 
@@ -23,6 +23,7 @@ def plot_predicted_vs_actual(
     *,
     target_display_name: str = "yield",
 ) -> Path:
+    """График предсказание vs факт; путь: out_dir/<модель>/pred_vs_actual_....png"""
     out_path_dir = Path(out_dir) / _safe_name(model_name)
     out_path_dir.mkdir(parents=True, exist_ok=True)
 

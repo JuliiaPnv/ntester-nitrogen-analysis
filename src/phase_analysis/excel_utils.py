@@ -7,7 +7,7 @@ import pandas as pd
 
 
 def save_excel_wait(df: pd.DataFrame, path: str | Path) -> Path:
-    """Сохранение в Excel; при занятом файле (например, открыт в Excel) — ждём и повторяем."""
+    """Сохраняет DataFrame в xlsx; при PermissionError ждёт и повторяет (файл открыт в Excel)."""
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
 

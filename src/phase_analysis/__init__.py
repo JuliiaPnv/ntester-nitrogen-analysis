@@ -1,4 +1,4 @@
-"""Фазовый анализ: универсальный CLI (main_phase.py) и функция ``run_analysis``."""
+"""Пакет анализа по фазам: точка входа main_phase.py, функция run_analysis."""
 
 from .pipeline import run_all, run_analysis
 

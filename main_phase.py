@@ -12,9 +12,9 @@ from src.phase_analysis.preprocessing import PhaseDataError
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Универсальный анализ эффективности признаков прибора и вегетационных индексов "
-            "для прогнозирования целевой переменной (макроэлемент по фазе, например N_1, или yield). "
-            "Результаты: --results-dir/<target>/; графики: --plots-dir/."
+            "Анализ связи показаний прибора и вегетационных индексов с целью "
+            "(макроэлемент с фазой или урожайность yield). "
+            "Результаты в --results-dir, графики в --plots-dir."
         )
     )
     parser.add_argument(

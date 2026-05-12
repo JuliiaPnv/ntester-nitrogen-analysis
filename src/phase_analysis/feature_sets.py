@@ -3,12 +3,12 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 
-# Суффикс фазы в имени столбца: ..._1, ..._12 и т.д. (последняя группа _<число> в конце)
+# Номер фазы в конце имени столбца: *_1, *_2, …
 _PHASE_SUFFIX_RE = re.compile(r"_(\d+)$")
 
 
 def parse_phase_suffix(column: str) -> int | None:
-    """Извлекает номер фазы из суффикса ``_<n>`` в конце имени столбца."""
+    """Возвращает номер фазы по суффиксу _<n> в конце имени столбца."""
     m = _PHASE_SUFFIX_RE.search(column)
     if not m:
         return None
@@ -16,7 +16,7 @@ def parse_phase_suffix(column: str) -> int | None:
 
 
 def index_prefix_before_phase(column: str) -> str | None:
-    """Префикс до суффикса фазы: ``NDVI_3`` → ``NDVI``; без суффикса → ``None``."""
+    """Часть имени до _<фаза> (например NDVI_3 → NDVI). Без фазы — None."""
     m = _PHASE_SUFFIX_RE.search(column)
     if not m:
         return None
@@ -25,11 +25,7 @@ def index_prefix_before_phase(column: str) -> str | None:
 
 
 def validate_target_name(target: str) -> None:
-    """
-    Правила из ТЗ:
-    - урожайность: ровно ``yield``;
-    - макроэлемент / показатель по фазе: имя с суффиксом ``_<номер>`` (например ``N_1``, ``P_2``).
-    """
+    """Проверка имени цели: yield без суффикса или показатель с фазой (N_1, P_2, …)."""
     if target == "yield":
         return
     if target.lower().startswith("yield") and target != "yield":
@@ -60,15 +56,10 @@ def build_macro_element_feature_sets(
     device_features: list[str],
     index_features: list[str],
 ) -> dict[str, list[str]]:
-    """
-    Наборы для макроэлемента (одна фаза в имени target, признаки задаёт пользователь):
-    N_test_only, <префикс>_only для каждого типа индекса, indexes_only, combined.
-    Порядок наборов *_only совпадает с порядком первого появления типа в ``index_features``.
-    """
+    """Наборы признаков для цели с фазой: прибор, по одному индексу, все индексы, combined."""
     fs: dict[str, list[str]] = {}
     fs["N_test_only"] = list(device_features)
 
-    # ключ f"{base}_only" → список столбцов; key_order — порядок вставки как в ТЗ
     groups: dict[str, list[str]] = {}
     key_order: list[str] = []
     for col in index_features:
@@ -96,12 +87,9 @@ def build_yield_feature_sets(
     index_features: list[str],
 ) -> dict[str, list[str]]:
     """
-    Наборы для ``yield``: N_test_only, N_test_phase*, *_only по типам индексов,
-    для каждого типа индекса с фазой — отдельные наборы ``{префикс}_phase{n}`` (например
-    ``NDVI_phase1`` = ``[NDVI_1]``, …), затем ``phase*_indices``, ``all_phases_indices``,
-    ``phase*_combined``, ``combined``.
-    Столбцы без суффикса фазы не попадают в фазовые поднаборы, но остаются в ``combined`` и
-    в конце ``all_phases_indices`` (после фазовых индексов).
+    Наборы для урожайности: прибор по фазам и суммарно, индексы по типу и по фазе
+    (в т.ч. NDVI_phase1 = [NDVI_1]), phaseN_indices, all_phases_indices, phaseN_combined, combined.
+    Столбцы без _<фаза> в имени не входят в фазовые поднаборы, но попадают в combined и в конец all_phases_indices.
     """
     fs: dict[str, list[str]] = {}
     fs["N_test_only"] = list(device_features)
@@ -118,7 +106,6 @@ def build_yield_feature_sets(
     idx_order = _order_map(index_features)
     unphased_cols = [c for c in index_features if parse_phase_suffix(c) is None]
 
-    # *_only по типам индексов; порядок наборов — как первое появление типа в index_features
     prefix_groups: dict[str, list[str]] = {}
     prefix_key_order: list[str] = []
     for c in index_features:
@@ -134,7 +121,6 @@ def build_yield_feature_sets(
     for key in prefix_key_order:
         cols_in_group = prefix_groups[key]
         fs[key] = _sort_by_phase_then_column_order(cols_in_group, idx_order)
-        # Фазовые наборы по одному индексу на фазу: NDVI_phase1 = [NDVI_1], …
         if not key.endswith("_only"):
             continue
         base = key[: -len("_only")]
@@ -184,14 +170,14 @@ def build_feature_sets(
     device_features: list[str],
     index_features: list[str],
 ) -> dict[str, list[str]]:
-    """Строит словарь feature_set → список столбцов в зависимости от типа цели."""
+    """Словарь имя_набора → столбцы для yield или для цели с фазой."""
     if target == "yield":
         return build_yield_feature_sets(device_features, index_features)
     return build_macro_element_feature_sets(device_features, index_features)
 
 
 def yield_phase_index_feature_keys(feature_sets: dict[str, list[str]]) -> list[str]:
-    """Ключи ``phaseN_indices`` для сравнения фаз по CV (порядок: по номеру фазы)."""
+    """Ключи phase1_indices, phase2_indices, … по возрастанию номера фазы."""
     keys: list[tuple[int, str]] = []
     for k in feature_sets:
         if k.startswith("phase") and k.endswith("_indices"):

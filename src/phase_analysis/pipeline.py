@@ -29,7 +29,7 @@ def _dedupe_preserve(columns: list[str]) -> list[str]:
 
 
 def _union_device_index(device_features: list[str], index_features: list[str]) -> list[str]:
-    """Все признаки для корреляций и scatter: сначала прибор, затем индексы, без дубликатов."""
+    """Признаки для корреляций и scatter: device, затем индексы, без дубликатов."""
     return _dedupe_preserve([*device_features, *index_features])
 
 
@@ -84,7 +84,7 @@ def _best_cv_per_feature_set(results_df: pd.DataFrame, feature_set_key: str) -> 
 
 
 def _print_yield_phase_comparison(results_df: pd.DataFrame, feature_sets: dict[str, list[str]]) -> None:
-    """Сравнение фаз по урожайности: phaseN_indices, all_phases_indices, combined."""
+    """Сравнение по фазам для yield: phaseN_indices, all_phases_indices, combined."""
     print(f"\n{'=' * 60}")
     print("Сравнение сценариев по урожайности (yield): фазы и объединение")
     print(f"{'=' * 60}")
@@ -142,10 +142,7 @@ def run_analysis(
     results_dir: str | Path,
     random_state: int = 42,
 ) -> None:
-    """
-    Универсальный запуск: корреляции + scatter + регрессия и/или классификация
-    в зависимости от ``task`` (``regression`` | ``classification`` | ``both``).
-    """
+    """Корреляции, scatter, регрессия и/или классификация по значению task."""
     validate_input_path(input_path)
     validate_target_name(target)
 
@@ -269,7 +266,6 @@ def run_analysis(
         )
 
 
-# Обратная совместимость: старый вызов без CLI (все сценарии подряд) больше не поддерживается.
 def run_all(
     input_path: str | Path,
     plots_dir: str | Path,
